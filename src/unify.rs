@@ -25,7 +25,7 @@ use crate::term::{ TermArena, TermData, TermId, VarId };
 /// A variable -> term mapping. Bindings can chain (`X -> Y`, `Y -> a`);
 /// `resolve()` follows this chain until it hits a non-variable term or an
 /// unbound variable.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Substitution {
     bindings: HashMap<VarId, TermId>,
 }
@@ -145,6 +145,13 @@ impl Substitution {
                 arena.mk_app(symbol, &new_args)
             }
         }
+    }
+
+    /// Needed by `collect_used_term_ids`, which has to walk every bound `TermId` in a
+    /// certificate's substitutions without already knowing which `VarId`s
+    /// were bound.
+    pub fn iter(&self) -> impl Iterator<Item = (VarId, TermId)> + '_ {
+        self.bindings.iter().map(|(&v, &t)| (v, t))
     }
 
     /// Occurs-check: does variable `v` appear anywhere inside `term`, after

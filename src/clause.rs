@@ -13,7 +13,9 @@
 //! also the ONLY way a `Clause` gets created (see the note on `ClauseStore`
 //! below for why that matters).
 
-use crate::term::{ SymbolId, TermArena, TermId };
+use std::vec;
+
+use crate::{ term::{ SymbolId, TermArena, TermId }, unify::Substitution };
 
 /// One literal: `predicate(args...)`, or its negation `~predicate(args...)`.
 ///
@@ -140,17 +142,39 @@ pub type ClauseId = u32;
 /// are not used until v0.2 (equality reasoning lands), but are listed here
 /// from day one so `InferenceInfo`/the proof format never needs a breaking
 /// change later — adding a new rule variant is additive, not a migration.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InferenceRule {
     /// Clause came directly from the input problem (an axiom or the negated
     /// goal), not derived by any inference rule.
     Input,
-    Resolution,
-    Factoring,
+    Resolution {
+        left: ClauseId,
+        left_lit: usize,
+        right: ClauseId,
+        right_lit: usize,
+        unifier: Substitution,
+    },
+    Factoring {
+        parent: ClauseId,
+        lit_a: usize,
+        lit_b: usize,
+        unifier: Substitution,
+    },
     Superposition, // TODO(v0.2): not yet implemented, see inference.rs
     EqualityResolution, // TODO(v0.2): not yet implemented
     EqualityFactoring, // TODO(v0.2): not yet implemented
     Demodulation, // TODO(v0.2): not yet implemented
+}
+
+impl InferenceRule {
+    pub fn parents(&self) -> Vec<ClauseId> {
+        match self {
+            InferenceRule::Input => vec![],
+            InferenceRule::Resolution { left, right, .. } => vec![*left, *right],
+            InferenceRule::Factoring { parent, .. } => vec![*parent],
+            _ => todo!("Not yet implemented"),
+        }
+    }
 }
 
 /// Provenance metadata for one clause: which rule produced it, and which
@@ -335,7 +359,7 @@ impl ClauseStore {
 // `get()` does direct indexing). Probably a `deleted: Vec<bool>` parallel
 // array, or wrapping `clauses` in `Vec<Option<Clause>>` — decide once
 // subsumption's actual access pattern is clearer, don't guess now.
- 
+
 // TODO(v0.4 — ML clause selection): `ClauseFeatures` extraction (README §4.2)
 // will want to read off of `Clause`/`Literal` (weight, age, arity, symbol
 // histogram, depth) largely as-is — most of the raw numbers it needs already
@@ -532,14 +556,23 @@ mod tests {
             InferenceInfo::input(),
             &arena
         );
+
         let resolvent = store.insert(
             vec![], // resolution of P(a) with ~P(a) -> empty clause
-            InferenceInfo::from_rule(InferenceRule::Resolution, vec![parent1, parent2]),
+            InferenceInfo::from_rule(
+                InferenceRule::Resolution {
+                    left: parent1,
+                    left_lit: 0,
+                    right: parent2,
+                    right_lit: 0,
+                    unifier: Substitution::default(),
+                },
+                vec![parent1, parent2]
+            ),
             &arena
         );
-
         let inf = &store.get(resolvent).inference;
-        assert_eq!(inf.rule, InferenceRule::Resolution);
+        assert!(matches!(inf.rule, InferenceRule::Resolution { .. }));
         assert_eq!(inf.parents, vec![parent1, parent2]);
         assert_eq!(store.get(parent1).inference.rule, InferenceRule::Input);
     }
@@ -562,14 +595,33 @@ mod tests {
             InferenceInfo::input(),
             &arena
         );
+
         let c2 = store.insert(
             vec![],
-            InferenceInfo::from_rule(InferenceRule::Resolution, vec![c0, c1]),
+            InferenceInfo::from_rule(
+                InferenceRule::Resolution {
+                    left: c0,
+                    left_lit: 0,
+                    right: c1,
+                    right_lit: 0,
+                    unifier: Substitution::default(),
+                },
+                vec![c0, c1]
+            ),
             &arena
         );
+
         let c3 = store.insert(
             vec![],
-            InferenceInfo::from_rule(InferenceRule::Factoring, vec![c2]),
+            InferenceInfo::from_rule(
+                InferenceRule::Factoring {
+                    parent: c2,
+                    lit_a: 0,
+                    lit_b: 1,
+                    unifier: Substitution::default(),
+                },
+                vec![c2]
+            ),
             &arena
         );
 

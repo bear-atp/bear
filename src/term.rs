@@ -85,10 +85,10 @@ enum InternKey {
 pub struct TermArena {
     /// `terms[id]` = the `TermData` for `TermId == id`. This is the "source
     /// of truth" — `TermId` is literally just an index into this `Vec`.
-    terms: Vec<TermData>,
+    pub terms: Vec<TermData>,
     /// Flat, shared storage for every `App` term's argument list. Ranges
     /// into this are never reused/overwritten once written (append-only).
-    args_pool: Vec<TermId>,
+    pub args_pool: Vec<TermId>,
     /// The hash-consing table itself: structural content -> the `TermId`
     /// that was assigned to it the FIRST time it was built.
     intern_map: HashMap<InternKey, TermId>,
@@ -225,6 +225,10 @@ impl TermArena {
 
     pub fn is_app(&self, id: TermId) -> bool {
         matches!(self.get(id), TermData::App(..))
+    }
+
+    pub fn mk_const(&mut self, sym: SymbolId) -> TermId {
+        self.mk_app(sym, &[])
     }
 
     /// The root symbol of an application term. `None` if `id` is a variable.

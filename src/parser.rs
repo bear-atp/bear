@@ -239,7 +239,7 @@ impl<'a> SexprParser<'a> {
 fn is_variable_name(s: &str) -> bool {
     s.chars()
         .next()
-        .map(|c| (c.is_uppercase() || c == '_'))
+        .map(|c| c.is_uppercase() || c == '_')
         .unwrap_or(false)
 }
 
@@ -765,6 +765,6 @@ mod tests {
         };
         let clause = sat.clause_store().get(proved_id);
         assert!(clause.is_empty());
-        assert_eq!(clause.inference.rule, InferenceRule::Resolution);
+        assert!(matches!(clause.inference.rule, InferenceRule::Resolution { .. }));
     }
 }

@@ -1,0 +1,45 @@
+;; .beardag v1 — generated certificate, do not hand-edit
+(beardag
+  (version 1)
+  (symbols
+    (0 man)
+    (1 mortal)
+    (2 socrates)
+  )
+  (terms
+    (0 (var 0))
+    (1 (app 2 ()))
+  )
+  (clauses
+    (clause 1
+      (literals
+        (pos 0 (1))
+      )
+      (input)
+    )
+    (clause 0
+      (literals
+        (neg 0 (0))
+        (pos 1 (0))
+      )
+      (input)
+    )
+    (clause 3
+      (literals
+        (pos 1 (1))
+      )
+      (resolution (left 1) (left_lit 0) (right 0) (right_lit 0) (subst (0 1)))
+    )
+    (clause 2
+      (literals
+        (neg 1 (1))
+      )
+      (input)
+    )
+    (clause 5
+      (literals)
+      (resolution (left 3) (left_lit 0) (right 2) (right_lit 0) (subst ))
+    )
+  )
+  (root 5)
+)

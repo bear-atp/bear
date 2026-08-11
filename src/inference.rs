@@ -213,7 +213,16 @@ pub fn resolve(
 
             results.push((
                 new_literals,
-                InferenceInfo::from_rule(InferenceRule::Resolution, vec![c1.id, c2.id]),
+                InferenceInfo::from_rule(
+                    InferenceRule::Resolution {
+                        left: c1.id,
+                        left_lit: i,
+                        right: c2.id,
+                        right_lit: j,
+                        unifier: subst,
+                    },
+                    vec![c1.id, c2.id]
+                ),
             ));
         }
     }
@@ -280,7 +289,15 @@ pub fn factor(c: &Clause, arena: &mut TermArena) -> Vec<InferenceResult> {
 
             results.push((
                 new_literals,
-                InferenceInfo::from_rule(InferenceRule::Factoring, vec![c.id]),
+                InferenceInfo::from_rule(
+                    InferenceRule::Factoring {
+                        parent: c.id,
+                        lit_a: i,
+                        lit_b: j,
+                        unifier: subst,
+                    },
+                    vec![c.id]
+                ),
             ));
         }
     }
@@ -434,7 +451,7 @@ mod tests {
         assert_eq!(results.len(), 1);
         let (literals, info) = &results[0];
         assert!(literals.is_empty(), "P(X) resolution with ~P(a) must produce an empty clause");
-        assert_eq!(info.rule, InferenceRule::Resolution);
+        assert!(matches!(info.rule, InferenceRule::Resolution { .. }));
         assert_eq!(info.parents, vec![c1, c2]);
     }
 
@@ -550,7 +567,7 @@ mod tests {
 
         // C1: P(a) | Q(a)     C2: ~P(b) | ~Q(a)
         // Pair P(a)/~P(b): predicates match but args (a vs b) fail to unify -> no resolvent produced.
-// Pair Q(a)/~Q(a): succeeds -> produces a resolvent.
+        // Pair Q(a)/~Q(a): succeeds -> produces a resolvent.
         let c1 = store.insert(
             vec![Literal::positive(fx.p, vec![a]), Literal::positive(fx.q, vec![a])],
             InferenceInfo::input(),
@@ -594,9 +611,13 @@ mod tests {
         let results = factor(store.get(c), &mut arena);
         assert_eq!(results.len(), 1);
         let (literals, info) = &results[0];
-        assert_eq!(literals.len(), 1, "two identical P(a) literals must be merged into one single literal");
+        assert_eq!(
+            literals.len(),
+            1,
+            "two identical P(a) literals must be merged into one single literal"
+        );
         assert_eq!(literals[0].display(&arena, &fx.symbols), "P(a)");
-        assert_eq!(info.rule, InferenceRule::Factoring);
+        assert!(matches!(info.rule, InferenceRule::Factoring { .. }));
         assert_eq!(info.parents, vec![c]);
     }
 
