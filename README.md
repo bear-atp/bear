@@ -30,7 +30,7 @@ This is a learning/research project, not a competitive theorem prover. The goal 
 ```
 $ cargo run --example socrates_sexpr
 
-Berhasil parse 3 clause:
+Successfully parsed 3 clauses:
   [0] ~man(X0) | mortal(X0)
   [1] man(socrates)
   [2] ~mortal(socrates)
