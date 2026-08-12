@@ -1,0 +1,10 @@
+name = "Term"
+version = "0.1.0"
+defaultTargets = ["term"]
+
+[[lean_lib]]
+name = "Term"
+
+[[lean_exe]]
+name = "term"
+root = "Main"
