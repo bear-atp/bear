@@ -1,23 +1,21 @@
-//! End-to-end example using the S-expression parser (instead of manually constructing
-//! terms via the Rust API like `examples/socrates.rs`). Compare both to see the
-//! difference: here, the problem is written in a separate text file
-//! (`problems/socrates.sexp`), which is much more concise than calling
-//! `arena.mk_var`/`arena.mk_app`/`Literal::positive` manually one by one.
+//! Same Socrates syllogism as `examples/socrates_sexpr.rs`, but parsed from
+//! TPTP CNF syntax instead of the S-expression format — demonstrates
+//! `Saturation::add_parsed_tptp_problem` / `tptp::parse_tptp_problem`.
 //!
-//! Run with: `cargo run --example socrates_sexpr`
+//! Run with: `cargo run --example socrates_tptp`
 
 use bear::saturation::{ Saturation, SaturationResult };
 use bear::term::SymbolTable;
 
 fn main() {
     let input = std::fs
-        ::read_to_string("problems/sexp/socrates.sexp")
-        .expect("failed to read problems/sexp/socrates.sexp (run from repo root)");
+        ::read_to_string("problems/socrates.tptp")
+        .expect("failed to read problems/socrates.tptp (run from repo root)");
 
     let mut symbols = SymbolTable::new();
     let mut sat = Saturation::new();
 
-    let ids = match sat.add_parsed_problem(&input, &mut symbols) {
+    let ids = match sat.add_parsed_tptp_problem(&input, &mut symbols) {
         Ok(ids) => ids,
         Err(e) => {
             eprintln!("Parse error: {e}");
@@ -52,7 +50,7 @@ fn main() {
 
 // Result
 // Successfully parsed 3 clauses:
-// [0] ~man(X0) | mortal(X0)
+//  [0] ~man(X0) | mortal(X0)
 //  [1] man(socrates)
 //  [2] ~mortal(socrates)
 //
@@ -63,4 +61,4 @@ fn main() {
 //  [0] ~man(X0) | mortal(X0)   (Input <- [])
 //  [3] mortal(socrates)   (Resolution { left: 1, left_lit: 0, right: 0, right_lit: 0, unifier: Substitution { bindings: {1: 1} } } <- [1, 0])
 //  [2] ~mortal(socrates)   (Input <- [])
-//  [5] ⊥   (Resolution { left: 3, left_lit: 0, right: 2, right_lit: 0, unifier: Substitution { bindings: {} } } <- [3, 2])
+//  [5] ⊥   (Resolution { left: 3, left_lit: 0, right: 2, right_lit: 0, unifier: Substitution { bindings: {} } } <- [3, 2])s

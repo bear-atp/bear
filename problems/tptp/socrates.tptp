@@ -1,0 +1,6 @@
+% Classic syllogism, TPTP CNF format: All men are mortal. Socrates is a
+% man. Therefore Socrates is mortal.
+% Proven via refutation: negate the goal, find a contradiction (empty clause).
+cnf(men_are_mortal, axiom, ~man(X) | mortal(X)).
+cnf(socrates_is_man, axiom, man(socrates)).
+cnf(negated_goal, negated_conjecture, ~mortal(socrates)).

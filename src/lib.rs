@@ -6,3 +6,4 @@ pub mod saturation;
 pub mod parser;
 pub mod proof_dag;
 pub mod beardag;
+pub mod tptp;

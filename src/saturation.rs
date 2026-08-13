@@ -125,6 +125,24 @@ impl Saturation {
         )
     }
 
+    /// Parse a TPTP CNF-format problem (see `tptp.rs`) and add every
+    /// resulting clause as input. Same contract as `add_parsed_problem`,
+    /// just delegating to `tptp::parse_tptp_problem` instead of
+    /// `parser::parse_problem`.
+    pub fn add_parsed_tptp_problem(
+        &mut self,
+        input: &str,
+        symbols: &mut crate::term::SymbolTable
+    ) -> Result<Vec<ClauseId>, crate::parser::ParseError> {
+        let clauses = crate::tptp::parse_tptp_problem(input, &mut self.arena, symbols)?;
+        Ok(
+            clauses
+                .into_iter()
+                .map(|lits| self.add_input_clause(lits))
+                .collect()
+        )
+    }
+
     /// Walk a proof backward from `from` (typically a `SaturationResult::Proved`
     /// clause id) to all of its root input clauses. Thin delegation to
     /// `ClauseStore::proof_trace` — see that function's comments for the

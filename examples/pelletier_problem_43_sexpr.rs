@@ -11,8 +11,8 @@ use bear::term::SymbolTable;
 
 fn main() {
     let input = std::fs
-        ::read_to_string("problems/pelletier_problem_43.sexp")
-        .expect("failed to read problems/pelletier_problem_43.sexp (run from repo root)");
+        ::read_to_string("problems/sexp/pelletier_problem_43.sexp")
+        .expect("failed to read problems/sexp/pelletier_problem_43.sexp (run from repo root)");
 
     let mut symbols = SymbolTable::new();
     let mut sat = Saturation::new();
